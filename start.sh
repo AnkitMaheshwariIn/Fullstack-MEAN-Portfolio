@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Check if Docker is running
-echo "Checking Docker status..."
-if ! docker info > /dev/null 2>&1; then
-    echo "Error: Docker is not running. Please start Docker Desktop first."
-    exit 1
-fi
-
+# Start MongoDB
 echo "Starting MongoDB..."
-docker-compose up -d
+mongod --dbpath ~/mongodb/data/db &
+
+# Wait a bit for MongoDB to start
+echo "Waiting for MongoDB to start..."
+sleep 5
 
 echo "Starting backend server..."
 cd backend && npm install && npm run dev &
@@ -19,7 +17,6 @@ cd ../frontend && npm install && ng serve &
 echo "All services are starting up..."
 echo "Backend: http://localhost:3000"
 echo "Frontend: http://localhost:4200"
-echo "MongoDB: http://localhost:27017"
 
 # Wait for all background processes to finish
 wait
