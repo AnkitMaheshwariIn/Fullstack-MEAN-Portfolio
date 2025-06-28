@@ -1,8 +1,28 @@
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import nodemailer from 'nodemailer';
+import { Error } from 'mongoose';
+import { ZodError } from 'zod';
+import { validateRequest, registerSchema, loginSchema } from '../utils/validationSchemas';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../config/.env' });
+
+// Type definitions for request bodies
+interface RegisterRequestBody {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
+}
+
+interface LoginRequestBody {
+  email: string;
+  password: string;
+}
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -33,8 +53,11 @@ interface AuthResponse {
   };
 }
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request<{}, {}, RegisterRequestBody>, res: Response, next: NextFunction) => {
   try {
+    // Validate request body
+    await validateRequest(registerSchema)(req, res, next);
+    
     const { email, password, firstName, lastName, role = 'user' } = req.body;
 
     // Check if user already exists
@@ -44,7 +67,7 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Create new user
-    const user = new User({
+    const newUser = new User({
       email,
       password,
       firstName,
@@ -52,6 +75,8 @@ export const register = async (req: Request, res: Response) => {
       role,
       emailVerified: false
     });
+
+    await newUser.save();
 
     await user.save();
 
@@ -73,23 +98,24 @@ export const register = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: newUser._id },
       process.env.JWT_SECRET!,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
     // Response without password
-    const { password: _, ...userWithoutPassword } = user.toObject();
+    const { password: _, ...newUserWithoutPassword } = newUser.toObject();
 
     res.status(201).json({
       message: 'Registration successful. Please check your email to verify your account.',
       token,
-      user: userWithoutPassword
+      user: newUserWithoutPassword
     } as AuthResponse);
   } catch (error) {
-    logger.error('Registration error:', error);
-    res.status(500).json({ message: 'Registration failed' });
+    logger.error('Registration error:', error instanceof Error ? error.message : error);
+    return res.status(500).json({ message: 'Registration failed' });
   }
+};
 };
 
 // Verify email
@@ -119,8 +145,11 @@ export const verifyEmail = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request<{}, {}, LoginRequestBody>, res: Response, next: NextFunction) => {
   try {
+    // Validate request body
+    await validateRequest(loginSchema)(req, res, next);
+    
     const { email, password } = req.body;
 
     // Find user
@@ -129,34 +158,33 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      return res.status(401).json({ message: 'Please verify your email first' });
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    // Verify password
+    const validPassword = await user.comparePassword(password);
+    if (!validPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT token
+    // Create JWT token
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: '24h' }
     );
 
-    // Response without password
-    const { password: _, ...userWithoutPassword } = user.toObject();
-
-    res.json({
+    // Return response
+    return res.json({
       token,
-      user: userWithoutPassword,
-    } as AuthResponse);
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role
+      }
+    });
   } catch (error) {
-    logger.error('Login error:', error);
-    res.status(500).json({ message: 'Login failed' });
+    logger.error('Login error:', error instanceof Error ? error.message : error);
+    return res.status(500).json({ message: 'Login failed' });
   }
 };
 
