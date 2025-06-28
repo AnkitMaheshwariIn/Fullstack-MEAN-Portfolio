@@ -4,7 +4,7 @@
 
 This is a production-grade fullstack web application showcasing a senior-level fullstack developer's expertise in building scalable enterprise applications. The system implements a Team Management and Reporting System with real-time capabilities and robust backend architecture.
 
-## 🛠️ Tech Stack
+### Tech Stack
 
 ### Frontend
 - Angular (Latest version)
@@ -14,6 +14,8 @@ This is a production-grade fullstack web application showcasing a senior-level f
 - PrimeNG UI Components
 - Angular Material
 - ExcelJS
+- Service Workers (Offline support and background sync)
+- Web Workers (Background processing for heavy computations)
 
 ### Backend
 - Node.js with Express
@@ -23,6 +25,7 @@ This is a production-grade fullstack web application showcasing a senior-level f
 - JWT Authentication
 - Winston (Logging)
 - Swagger/OpenAPI
+- Background Processing Service (for Web Worker integration)
 
 ## 📁 Project Structure
 
@@ -32,6 +35,8 @@ my-professional-showcase/
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── core/        # Core services and interceptors
+│   │   │   │   ├── workers/ # Web Worker services
+│   │   │   │   └── sw/      # Service Worker implementation
 │   │   │   ├── features/    # Feature modules
 │   │   │   ├── shared/      # Shared components and services
 │   │   │   └── theme/       # Theme configuration
@@ -48,9 +53,24 @@ my-professional-showcase/
     │   ├── models/      # Mongoose models
     │   ├── routes/      # API routes
     │   ├── services/    # Business logic
+    │   │   └── background/ # Background processing service
     │   └── utils/       # Helper utilities
     └── tests/          # Unit tests
 ```
+
+## 🚀 Getting Started
+
+### Service Worker Features
+- Offline support for dashboard widgets
+- Background sync for team updates
+- Caching strategies for static assets
+- Push notifications for important updates
+
+### Web Worker Features
+- Background data processing for reports
+- Heavy computations for analytics
+- Image processing for avatars
+- Excel file generation without blocking UI
 
 ## 🚀 Getting Started
 

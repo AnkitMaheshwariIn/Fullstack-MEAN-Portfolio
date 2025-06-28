@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export interface IUser extends Document {
   email: string;
@@ -8,9 +9,17 @@ export interface IUser extends Document {
   lastName: string;
   role: string;
   teams: mongoose.Types.ObjectId[];
+  emailVerified: boolean;
+  verificationToken: string;
+  verificationTokenExpires: Date;
+  passwordResetToken: string;
+  passwordResetTokenExpires: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  generateVerificationToken(): Promise<string>;
+  generatePasswordResetToken(): Promise<string>;
+  clearPasswordResetToken(): Promise<void>;
 }
 
 const userSchema = new Schema({
@@ -48,6 +57,31 @@ const userSchema = new Schema({
 }, {
   timestamps: true,
 });
+
+// Method to generate verification token
+userSchema.methods.generateVerificationToken = async function() {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.verificationToken = token;
+  this.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  await this.save();
+  return token;
+};
+
+// Method to generate password reset token
+userSchema.methods.generatePasswordResetToken = async function() {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = token;
+  this.passwordResetTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  await this.save();
+  return token;
+};
+
+// Method to clear password reset token
+userSchema.methods.clearPasswordResetToken = async function() {
+  this.passwordResetToken = undefined;
+  this.passwordResetTokenExpires = undefined;
+  await this.save();
+};
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

@@ -1,0 +1,55 @@
+<div class="report-container">
+  <div class="report-header">
+    <h2>Report Generator</h2>
+    <div class="report-type-selector">
+      <mat-radio-group [(ngModel)]="reportType">
+        <mat-radio-button value="project">Project Report</mat-radio-button>
+        <mat-radio-button value="team">Team Report</mat-radio-button>
+        <mat-radio-button value="performance">Performance Report</mat-radio-button>
+      </mat-radio-group>
+    </div>
+  </div>
+
+  <div class="report-content">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="generateReport()"
+      [disabled]="isLoading"
+    >
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">Generate Report</span>
+    </button>
+
+    <div *ngIf="error" class="error-message">
+      <mat-icon>error</mat-icon>
+      {{error}}
+    </div>
+
+    <div *ngIf="reportResult" class="report-results">
+      <div class="summary-section">
+        <h3>Summary</h3>
+        <div class="metrics-grid">
+          <div *ngFor="let metric of reportResult.processedData.summary" class="metric-card">
+            <h4>{{metric.name}}</h4>
+            <div class="metric-value">
+              {{metric.value}}{{metric.unit || ''}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="insights-section">
+        <h3>Insights</h3>
+        <div class="insights-list">
+          <mat-list>
+            <mat-list-item *ngFor="let insight of reportResult.processedData.insights">
+              <mat-icon matListIcon>insights</mat-icon>
+              <span matLine>{{insight}}</span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

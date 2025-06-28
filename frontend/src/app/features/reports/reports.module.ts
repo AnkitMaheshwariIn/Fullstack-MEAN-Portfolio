@@ -1,24 +1,28 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ThemeService } from './theme.service';
-import { ThemeSwitcherComponent } from './theme-switcher/theme-switcher.component';
-import { ThemeConfigComponent } from './theme-config/theme-config.component';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Routes } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ReportComponent } from './report.component';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: ReportComponent
+  }
+];
 
 @NgModule({
-  declarations: [
-    ThemeSwitcherComponent,
-    ThemeConfigComponent
-  ],
+  declarations: [ReportComponent],
   imports: [
     CommonModule,
-    RouterModule,
+    FormsModule,
+    RouterModule.forChild(routes),
     MatCardModule,
     MatListModule,
     MatIconModule,
@@ -26,12 +30,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatRadioModule,
     MatProgressSpinnerModule
   ],
-  exports: [
-    ThemeSwitcherComponent,
-    ThemeConfigComponent
-  ],
-  providers: [
-    ThemeService
-  ]
+  exports: [RouterModule]
 })
-export class ThemeModule { }
+export class ReportsModule { }
