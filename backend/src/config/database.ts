@@ -8,7 +8,7 @@ config({ path: '../config/.env' });
 
 const connectDB = async () => {
   try {
-    const MONGODB_URI = process.env.MONGODB_URI;
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio_db';
     if (!MONGODB_URI) {
       throw new Error('MongoDB URI is not defined');
     }
